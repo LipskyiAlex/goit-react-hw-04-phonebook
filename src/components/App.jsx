@@ -6,49 +6,44 @@ import { nanoid } from 'nanoid';
 import Notiflix from 'notiflix';
 import { MainContainer, MainTitle, SecondaryTitle } from './App.styled';
 
-class App extends React.Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+import { useState,useEffect} from 'react';
 
-  componentDidMount() {
-    const contactData = localStorage.getItem('contacts');
+const App = () => {
 
-    try {
-      if (contactData) {
-        const parsedContacts = JSON.parse(contactData);
+  
+     const [contacts,setContacts] = useState(() => {
 
-        this.setState({
-          contacts: parsedContacts,
-        });
-      }
-    } catch (error) {
-      
-      Notiflix.Notify.failure("Faild to fetch contacts, please contact the administrator");
-    }
-  }
+       return JSON.parse(localStorage.getItem('contacts')) ?? []
 
-  componentDidUpdate(prevProps,prevState) {
+     });
+     const [filter,setFilter] = useState('');
+  
+        useEffect(() => {
 
-    if(prevState.contacts !== this.state.contacts) {
+              localStorage.setItem('contacts',JSON.stringify(contacts));
 
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-   
-  }
 
-  handleChange = e => {
-    const { name, value } = e.target;
-    this.setState({
-      [name]: value,
-    });
-  };
+        },[contacts])
+  
+  const handleInputChange = e => setFilter(e.target.value);
 
-  handleSubmit = (values, { resetForm }) => {
+
+  const handleFormSubmit = (values, { resetForm }) => {
     const { name, number } = values;
-    const { contacts } = this.state;
+
     resetForm();
+
+    if (
+      contacts.find(
+        contact =>
+          contact.contact.toLowerCase() === name.toLowerCase()
+      )
+    ) {
+      return Notiflix.Notify.failure(
+        `${name} is already in contacts`
+      );
+    }
+
     const contactId = nanoid();
     const newContact = {
       id: contactId,
@@ -56,43 +51,30 @@ class App extends React.Component {
       number: number,
     };
 
-    if (
-      contacts.find(
-        contact =>
-          contact.contact.toLowerCase() === newContact.contact.toLowerCase()
-      )
-    ) {
-      return Notiflix.Notify.failure(
-        `${newContact.contact} is already in contacts`
-      );
-    }
-
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, newContact],
-    }));
+      
+    setContacts(contacts => [...contacts, newContact]);
   };
 
-  handleDelete = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
+  const handleContactDelete = contactId => {
+      console.log(contactId);
+    setContacts(contacts =>  contacts.filter(contact => contact.id !== contactId));
+  
+
   };
 
-  render() {
-    const { contacts, filter } = this.state;
+
     const filteredContacts = contacts.filter(({ contact }) =>
       contact.toLowerCase().includes(filter.toLowerCase())
     );
     return (
       <MainContainer>
         <MainTitle>Phonebook</MainTitle>
-        <Input onSubmit={this.handleSubmit} />
+        <Input onSubmit={handleFormSubmit} />
         <SecondaryTitle>Contacts</SecondaryTitle>
-        <Filter filter={filter} onChange={this.handleChange} />
-        <Contacts contacts={filteredContacts} onDelete={this.handleDelete} />
+        <Filter filter={filter} onChange={handleInputChange} />
+        <Contacts contacts={filteredContacts} onDelete={handleContactDelete} />
       </MainContainer>
     );
-  }
 }
 
 export default App;
