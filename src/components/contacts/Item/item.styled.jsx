@@ -15,3 +15,10 @@ display:flex;
 gap:10px;
 align-items:center;
 `
+
+
+export const Delete = styled.div`
+  
+cursor:pointer;
+
+`
