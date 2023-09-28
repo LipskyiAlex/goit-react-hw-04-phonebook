@@ -56,7 +56,7 @@ const App = () => {
   };
 
   const handleContactDelete = contactId => {
-      console.log(contactId);
+
     setContacts(contacts =>  contacts.filter(contact => contact.id !== contactId));
   
 
